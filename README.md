@@ -1,9 +1,6 @@
-# Laporan Program - Sistem Manajemen Dealer Mobil Honda
-
-Mata Kuliah  : Pemrograman Berorientasi Objek
-Modul        : 2 - Class
-Bahasa       : Java (OpenJDK 25.0.2)
-Institusi    : Informatika, Universitas Mulawarman
+Nama     : Aulia Nur Rachman
+NIM      : 2409106069
+Kelas    : B1
 
 ---
 
