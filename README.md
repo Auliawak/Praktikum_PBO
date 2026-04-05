@@ -3,120 +3,127 @@ Kelas: B1
 NIM: 2409106069
 
 ---
-
-## Penerapan Access Modifier
-
-Program ini menerapkan keempat jenis access modifier yang ada di Java.
-
-### 1. private
-
-Digunakan pada semua field di setiap class sehingga data tidak bisa diakses atau diubah langsung dari luar. Perubahan hanya boleh terjadi melalui setter yang sudah dikontrol.
-
-Contoh di Mobil.java:
-```java
-private String  id;
-private String  nama;
-private double  harga;
-private boolean tersedia;
+ 
+## Rancangan Inheritance
+ 
+Program ini menggunakan Single Inheritance, yaitu setiap subclass hanya mewarisi dari satu parent class.
+ 
 ```
-
-Contoh di DealerManager.java:
+Mobil  (parent class)
+  |
+  +-- MobilBensin  (subclass 1)
+  |
+  +-- MobilListrik (subclass 2)
+```
+ 
+Pemilihan ini logis karena di dunia nyata Honda memang memiliki dua lini produk utama: kendaraan bermesin bensin dan kendaraan bertenaga listrik. Keduanya adalah mobil, sehingga memiliki data dasar yang sama, namun masing-masing punya spesifikasi teknis yang berbeda.
+ 
+---
+ 
+## Penjelasan Setiap Class
+ 
+### Mobil (Parent Class)
+ 
+Berisi data yang dimiliki oleh semua jenis mobil tanpa terkecuali:
+id, nama, tipe, warna, tahun, harga, dan status tersedia.
+ 
+Juga memiliki method `getKategori()` dan `tampilInfo()` yang dapat di-override oleh subclass.
+ 
+### MobilBensin (Subclass 1)
+ 
+Mewarisi semua field dan method dari Mobil, lalu menambahkan:
+- `kapasitasMesin` (double) - kapasitas mesin dalam satuan cc
+- `jenisBahanBakar` (String) - jenis BBM yang digunakan
+ 
+Method yang di-override:
+- `getKategori()` - mengembalikan "Mobil Bensin"
+- `tampilInfo()` - memanggil `super.tampilInfo()` lalu menambah baris mesin dan BBM
+ 
+### MobilListrik (Subclass 2)
+ 
+Mewarisi semua field dan method dari Mobil, lalu menambahkan:
+- `kapasitasBaterai` (double) - kapasitas baterai dalam satuan kWh
+- `jangkauanKm` (int) - jarak tempuh maksimal dalam km
+ 
+Method yang di-override:
+- `getKategori()` - mengembalikan "Mobil Listrik"
+- `tampilInfo()` - memanggil `super.tampilInfo()` lalu menambah baris baterai dan jangkauan
+ 
+---
+ 
+## Konsep Inheritance yang Diterapkan
+ 
+### 1. Kata kunci extends
+ 
+Digunakan untuk mendeklarasikan bahwa suatu class mewarisi class lain.
+ 
+```java
+public class MobilBensin extends Mobil { ... }
+public class MobilListrik extends Mobil { ... }
+```
+ 
+### 2. Kata kunci super
+ 
+Digunakan di constructor subclass untuk memanggil constructor parent class, sehingga field yang ada di parent tidak perlu diinisialisasi ulang.
+ 
+```java
+public MobilBensin(String id, String nama, String tipe,
+                   String warna, int tahun, double harga,
+                   double kapasitasMesin, String jenisBahanBakar) {
+    super(id, nama, tipe, warna, tahun, harga);
+    this.kapasitasMesin  = kapasitasMesin;
+    this.jenisBahanBakar = jenisBahanBakar;
+}
+```
+ 
+Juga digunakan di `tampilInfo()` untuk memanggil versi method milik parent sebelum menambahkan baris khusus subclass.
+ 
+```java
+@Override
+public void tampilInfo() {
+    super.tampilInfo();
+    System.out.println("  Mesin     : " + this.kapasitasMesin + " cc");
+    System.out.println("  BBM       : " + this.jenisBahanBakar);
+}
+```
+ 
+### 3. Method Overriding (@Override)
+ 
+Subclass menimpa method `getKategori()` dan `tampilInfo()` yang sudah ada di parent class. Dengan cara ini, ketika `tampilInfo()` dipanggil pada objek `MobilBensin`, yang dieksekusi adalah versi `MobilBensin`, bukan versi `Mobil`.
+ 
+### 4. Polymorphism melalui ArrayList
+ 
+`DealerManager` menyimpan semua mobil dalam satu `ArrayList<Mobil>`. Meskipun isinya bisa berupa `MobilBensin` maupun `MobilListrik`, keduanya bisa diperlakukan sebagai `Mobil` karena keduanya adalah turunan dari `Mobil`.
+ 
 ```java
 private ArrayList<Mobil> daftarMobil;
-private int counterIdOtomatis;
-
-private void initDataAwal() { ... }
-private String buatId() { ... }
 ```
-
-Contoh di InputManager.java:
+ 
+### 5. instanceof untuk pengecekan tipe
+ 
+Digunakan di menu ubah untuk menampilkan dan mengubah field spesifik sesuai jenis mobilnya.
+ 
 ```java
-private Scanner scanner;
-private Helper  helper;
-
-private static class Helper { ... }
-```
-
-### 2. public
-
-Digunakan pada constructor, semua getter dan setter, method tampilInfo(), dan semua method CRUD di DealerManager. Artinya bisa diakses dari class manapun.
-
-Contoh di Mobil.java:
-```java
-public String getId()    { return this.id; }
-public void setNama(String nama) { ... }
-public void tampilInfo() { ... }
-```
-
-### 3. protected
-
-Digunakan pada method validasiHarga() di class Mobil. Method ini bisa diakses oleh class Mobil sendiri dan subclass-nya, tetapi tidak dari class lain yang tidak memiliki hubungan pewarisan.
-
-Contoh di Mobil.java:
-```java
-protected boolean validasiHarga(double harga) {
-    return harga >= 0;
+if (target instanceof MobilBensin mb) {
+    mb.setKapasitasMesin(...);
+}
+ 
+if (target instanceof MobilListrik ml) {
+    ml.setKapasitasBaterai(...);
 }
 ```
-
-Method ini dipanggil oleh setter setHarga() agar nilai yang disimpan selalu valid.
-
-### 4. default (package-private)
-
-Digunakan pada method formatHarga() di class Mobil. Tidak ada modifier yang ditulis, artinya hanya bisa diakses oleh class dalam package yang sama.
-
-Contoh di Mobil.java:
-```java
-String formatHarga() {
-    return String.format("Rp %,.0f", this.harga);
-}
-```
-
+ 
 ---
-
-## Penerapan Encapsulation
-
-Encapsulation diterapkan dengan menyembunyikan data di balik modifier private, lalu menyediakan akses terkontrol melalui getter dan setter.
-
-Contoh pertama: field harga bersifat private. Perubahan hanya bisa dilakukan lewat setHarga(), yang di dalamnya memanggil validasiHarga() untuk memastikan nilai tidak negatif.
-
-```java
-public void setHarga(double harga) {
-    if (validasiHarga(harga)) {
-        this.harga = harga;
-    }
-}
-
-protected boolean validasiHarga(double harga) {
-    return harga >= 0;
-}
-```
-
-Contoh kedua: field daftarMobil di DealerManager bersifat private. Kode luar tidak bisa menambah atau menghapus data secara langsung. Semua perubahan harus melalui method tambahMobil(), updateMobil(), atau hapusMobil().
-
-Contoh ketiga: class Helper di dalam InputManager dibuat sebagai private static inner class. Detail implementasi pembacaan input tersembunyi dari class lain, yang hanya bisa menggunakan method public yang ada di InputManager.
-
----
-
-## Ringkasan Access Modifier
-
-| Modifier  | Diterapkan Pada                                                                          | Tujuan                                              |
-|-----------|------------------------------------------------------------------------------------------|-----------------------------------------------------|
-| private   | Semua field di Mobil, DealerManager, Main, InputManager; buatId(); initDataAwal(); class Helper | Data tidak bisa diakses langsung dari luar class |
-| public    | Constructor, getter, setter, tampilInfo(), method CRUD, method input                    | Bisa diakses dari class manapun                     |
-| protected | validasiHarga() di Mobil                                                                 | Bisa dipakai subclass, tidak terlihat dari luar     |
-| default   | formatHarga() di Mobil                                                                   | Hanya bisa diakses dalam package yang sama          |
-
----
-
+ 
 ## Data Awal
-
-Program dimulai dengan lima data mobil:
-
-| ID        | Nama        | Tipe      | Warna  | Tahun | Harga          |
-|-----------|-------------|-----------|--------|-------|----------------|
-| HONDA-001 | Honda Brio  | Hatchback | Merah  | 2023  | Rp 175.000.000 |
-| HONDA-002 | Honda Jazz  | Hatchback | Putih  | 2022  | Rp 270.000.000 |
-| HONDA-003 | Honda City  | Sedan     | Hitam  | 2023  | Rp 355.000.000 |
-| HONDA-004 | Honda Civic | Sedan     | Silver | 2024  | Rp 570.000.000 |
-| HONDA-005 | Honda CR-V  | SUV       | Biru   | 2024  | Rp 620.000.000 |
+ 
+| ID        | Kategori      | Nama        | Tipe      | Tahun | Harga          |
+|-----------|---------------|-------------|-----------|-------|----------------|
+| HONDA-001 | Mobil Bensin  | Honda Brio  | Hatchback | 2023  | Rp 175.000.000 |
+| HONDA-002 | Mobil Bensin  | Honda Jazz  | Hatchback | 2022  | Rp 270.000.000 |
+| HONDA-003 | Mobil Bensin  | Honda City  | Sedan     | 2023  | Rp 355.000.000 |
+| HONDA-004 | Mobil Bensin  | Honda Civic | Sedan     | 2024  | Rp 570.000.000 |
+| HONDA-005 | Mobil Bensin  | Honda CR-V  | SUV       | 2024  | Rp 620.000.000 |
+| HONDA-006 | Mobil Listrik | Honda e     | Hatchback | 2024  | Rp 750.000.000 |
+| HONDA-007 | Mobil Listrik | Honda e:Ny1 | SUV       | 2024  | Rp 850.000.000 |
+ 
