@@ -4,114 +4,114 @@ NIM: 2409106069
 
 ---
  
-## Rancangan Inheritance
+## Penerapan Polymorphism
  
-Program ini menggunakan Single Inheritance, yaitu setiap subclass hanya mewarisi dari satu parent class.
+### Method Overriding
  
-```
-Mobil  (parent class)
-  |
-  +-- MobilBensin  (subclass 1)
-  |
-  +-- MobilListrik (subclass 2)
-```
+Overriding adalah ketika subclass mendefinisikan ulang method yang sudah ada di parent class dengan tanda @Override.
  
-Pemilihan ini logis karena di dunia nyata Honda memang memiliki dua lini produk utama: kendaraan bermesin bensin dan kendaraan bertenaga listrik. Keduanya adalah mobil, sehingga memiliki data dasar yang sama, namun masing-masing punya spesifikasi teknis yang berbeda.
+#### 1. getKategori()
  
----
- 
-## Penjelasan Setiap Class
- 
-### Mobil (Parent Class)
- 
-Berisi data yang dimiliki oleh semua jenis mobil tanpa terkecuali:
-id, nama, tipe, warna, tahun, harga, dan status tersedia.
- 
-Juga memiliki method `getKategori()` dan `tampilInfo()` yang dapat di-override oleh subclass.
- 
-### MobilBensin (Subclass 1)
- 
-Mewarisi semua field dan method dari Mobil, lalu menambahkan:
-- `kapasitasMesin` (double) - kapasitas mesin dalam satuan cc
-- `jenisBahanBakar` (String) - jenis BBM yang digunakan
- 
-Method yang di-override:
-- `getKategori()` - mengembalikan "Mobil Bensin"
-- `tampilInfo()` - memanggil `super.tampilInfo()` lalu menambah baris mesin dan BBM
- 
-### MobilListrik (Subclass 2)
- 
-Mewarisi semua field dan method dari Mobil, lalu menambahkan:
-- `kapasitasBaterai` (double) - kapasitas baterai dalam satuan kWh
-- `jangkauanKm` (int) - jarak tempuh maksimal dalam km
- 
-Method yang di-override:
-- `getKategori()` - mengembalikan "Mobil Listrik"
-- `tampilInfo()` - memanggil `super.tampilInfo()` lalu menambah baris baterai dan jangkauan
- 
----
- 
-## Konsep Inheritance yang Diterapkan
- 
-### 1. Kata kunci extends
- 
-Digunakan untuk mendeklarasikan bahwa suatu class mewarisi class lain.
+Didefinisikan di Mobil, di-override di MobilBensin dan MobilListrik. Dipakai untuk menampilkan label kategori yang tepat pada setiap objek.
  
 ```java
-public class MobilBensin extends Mobil { ... }
-public class MobilListrik extends Mobil { ... }
+public String getKategori() { return "Mobil"; }
+ 
+@Override
+public String getKategori() { return "Mobil Bensin"; }
+ 
+@Override
+public String getKategori() { return "Mobil Listrik"; }
 ```
  
-### 2. Kata kunci super
+#### 2. hitungPajak()
  
-Digunakan di constructor subclass untuk memanggil constructor parent class, sehingga field yang ada di parent tidak perlu diinisialisasi ulang.
+Didefinisikan di Mobil dengan tarif 10%. Di-override di MobilBensin dengan tarif yang berbeda tergantung kapasitas mesin (10% untuk mesin di bawah 1500 cc, 12.5% untuk di atasnya), dan di MobilListrik dengan tarif 1% sebagai bentuk insentif pemerintah untuk kendaraan listrik.
  
 ```java
-public MobilBensin(String id, String nama, String tipe,
-                   String warna, int tahun, double harga,
-                   double kapasitasMesin, String jenisBahanBakar) {
-    super(id, nama, tipe, warna, tahun, harga);
-    this.kapasitasMesin  = kapasitasMesin;
-    this.jenisBahanBakar = jenisBahanBakar;
+public double hitungPajak() { return this.harga * 0.10; }
+ 
+@Override
+public double hitungPajak() {
+    if (this.kapasitasMesin <= 1500) return getHarga() * 0.10;
+    else return getHarga() * 0.125;
 }
+ 
+@Override
+public double hitungPajak() { return getHarga() * 0.01; }
 ```
  
-Juga digunakan di `tampilInfo()` untuk memanggil versi method milik parent sebelum menambahkan baris khusus subclass.
+#### 3. tampilInfo()
+ 
+Didefinisikan di Mobil untuk menampilkan data dasar. Di-override di MobilBensin untuk menambah baris mesin dan BBM, dan di MobilListrik untuk menambah baris kapasitas baterai dan jangkauan.
  
 ```java
+public void tampilInfo() { ... }
+ 
 @Override
 public void tampilInfo() {
     super.tampilInfo();
     System.out.println("  Mesin     : " + this.kapasitasMesin + " cc");
     System.out.println("  BBM       : " + this.jenisBahanBakar);
 }
-```
  
-### 3. Method Overriding (@Override)
- 
-Subclass menimpa method `getKategori()` dan `tampilInfo()` yang sudah ada di parent class. Dengan cara ini, ketika `tampilInfo()` dipanggil pada objek `MobilBensin`, yang dieksekusi adalah versi `MobilBensin`, bukan versi `Mobil`.
- 
-### 4. Polymorphism melalui ArrayList
- 
-`DealerManager` menyimpan semua mobil dalam satu `ArrayList<Mobil>`. Meskipun isinya bisa berupa `MobilBensin` maupun `MobilListrik`, keduanya bisa diperlakukan sebagai `Mobil` karena keduanya adalah turunan dari `Mobil`.
- 
-```java
-private ArrayList<Mobil> daftarMobil;
-```
- 
-### 5. instanceof untuk pengecekan tipe
- 
-Digunakan di menu ubah untuk menampilkan dan mengubah field spesifik sesuai jenis mobilnya.
- 
-```java
-if (target instanceof MobilBensin mb) {
-    mb.setKapasitasMesin(...);
-}
- 
-if (target instanceof MobilListrik ml) {
-    ml.setKapasitasBaterai(...);
+@Override
+public void tampilInfo() {
+    super.tampilInfo();
+    System.out.println("  Baterai   : " + this.kapasitasBaterai + " kWh");
+    System.out.println("  Jangkauan : " + this.jangkauanKm + " km");
 }
 ```
+ 
+---
+ 
+### Method Overloading
+ 
+Overloading adalah ketika satu class memiliki beberapa method dengan nama yang sama tetapi parameter yang berbeda.
+ 
+#### 1. hitungDiskon() di class Mobil (3 versi)
+ 
+Logis karena dealer bisa memberikan diskon dalam berbagai cara: diskon standar tanpa argumen, diskon dengan persentase tertentu, atau diskon dengan persentase sekaligus alasan yang tercatat.
+ 
+```java
+public double hitungDiskon() {
+    return this.harga * 0.05;
+}
+ 
+public double hitungDiskon(double persentase) {
+    return this.harga * (persentase / 100);
+}
+ 
+public double hitungDiskon(double persentase, String alasan) {
+    double diskon = this.harga * (persentase / 100);
+    System.out.println("  Alasan diskon : " + alasan);
+    return diskon;
+}
+```
+ 
+#### 2. cariMobil() di class DealerManager (3 versi)
+ 
+Logis karena pencarian mobil di dealer bisa dilakukan dengan berbagai kriteria: berdasarkan ID, berdasarkan kata kunci nama atau tipe, atau berdasarkan rentang tahun produksi.
+ 
+```java
+public Mobil cariMobil(String id) { ... }
+ 
+public ArrayList<Mobil> cariMobil(String kata, boolean cariByNama) { ... }
+ 
+public ArrayList<Mobil> cariMobil(int tahunDari, int tahunSampai) { ... }
+```
+ 
+---
+ 
+## Ringkasan Polymorphism
+ 
+| Jenis       | Method            | Lokasi            | Keterangan                                      |
+|-------------|-------------------|-------------------|-------------------------------------------------|
+| Overriding  | getKategori()     | MobilBensin, MobilListrik | Mengembalikan label kategori yang sesuai  |
+| Overriding  | hitungPajak()     | MobilBensin, MobilListrik | Tarif pajak berbeda per jenis kendaraan   |
+| Overriding  | tampilInfo()      | MobilBensin, MobilListrik | Menambah baris info khusus per subclass   |
+| Overloading | hitungDiskon()    | Mobil             | 3 versi: tanpa param, dengan persen, dengan alasan |
+| Overloading | cariMobil()       | DealerManager     | 3 versi: by ID, by nama/tipe, by rentang tahun |
  
 ---
  
