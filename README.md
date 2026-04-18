@@ -4,114 +4,129 @@ NIM: 2409106069
 
 ---
  
-## Penerapan Polymorphism
+## Hierarki Class
  
-### Method Overriding
- 
-Overriding adalah ketika subclass mendefinisikan ulang method yang sudah ada di parent class dengan tanda @Override.
- 
-#### 1. getKategori()
- 
-Didefinisikan di Mobil, di-override di MobilBensin dan MobilListrik. Dipakai untuk menampilkan label kategori yang tepat pada setiap objek.
- 
-```java
-public String getKategori() { return "Mobil"; }
- 
-@Override
-public String getKategori() { return "Mobil Bensin"; }
- 
-@Override
-public String getKategori() { return "Mobil Listrik"; }
+```
+<<interface>>
+ITerhitung
+  + hitungDiskon(double) : double
+  + hitungHargaAkhir(double) : double
+        |
+        | implements
+        |
+<<abstract>>
+Mobil
+  - id, nama, tipe, warna, tahun, harga, tersedia
+  + getKategori() : String      [abstract]
+  + hitungPajak() : double      [abstract]
+  + hitungDiskon() : double
+  + hitungDiskon(double) : double       [implements ITerhitung]
+  + hitungDiskon(double, String) : double
+  + hitungHargaAkhir(double) : double   [implements ITerhitung]
+  + tampilInfo() : void
+        |
+        +-------------------+
+        |                   |
+MobilBensin             MobilListrik
+  - kapasitasMesin        - kapasitasBaterai
+  - jenisBahanBakar       - jangkauanKm
 ```
  
-#### 2. hitungPajak()
+---
  
-Didefinisikan di Mobil dengan tarif 10%. Di-override di MobilBensin dengan tarif yang berbeda tergantung kapasitas mesin (10% untuk mesin di bawah 1500 cc, 12.5% untuk di atasnya), dan di MobilListrik dengan tarif 1% sebagai bentuk insentif pemerintah untuk kendaraan listrik.
+## Penerapan Abstract Class
+ 
+Class `Mobil` diubah menjadi abstract class karena dalam konteks dealer Honda yang nyata, tidak ada objek yang hanya berstatus "Mobil" tanpa jenis yang jelas. Setiap kendaraan pasti merupakan mobil bensin atau mobil listrik. Oleh karena itu, class `Mobil` tidak boleh diinstansiasi langsung.
  
 ```java
-public double hitungPajak() { return this.harga * 0.10; }
+public abstract class Mobil implements ITerhitung {
+    ...
+}
+```
+ 
+Pernyataan `new Mobil(...)` akan menyebabkan error kompilasi, yang memastikan programmer tidak bisa membuat objek Mobil generik secara tidak sengaja.
+ 
+---
+ 
+## Penerapan Abstract Method
+ 
+Dua method dideklarasikan abstract di class `Mobil` karena implementasinya berbeda-beda tergantung jenis mobil dan tidak ada nilai default yang masuk akal untuk class induknya.
+ 
+```java
+public abstract String getKategori();
+ 
+public abstract double hitungPajak();
+```
+ 
+Karena kedua method ini abstract, setiap subclass wajib mengimplementasikannya, jika tidak maka subclass tersebut juga harus dideklarasikan abstract.
+ 
+Implementasi di `MobilBensin`:
+ 
+```java
+@Override
+public String getKategori() { return "Mobil Bensin"; }
  
 @Override
 public double hitungPajak() {
     if (this.kapasitasMesin <= 1500) return getHarga() * 0.10;
     else return getHarga() * 0.125;
 }
+```
+ 
+Implementasi di `MobilListrik`:
+ 
+```java
+@Override
+public String getKategori() { return "Mobil Listrik"; }
  
 @Override
 public double hitungPajak() { return getHarga() * 0.01; }
 ```
  
-#### 3. tampilInfo()
+---
  
-Didefinisikan di Mobil untuk menampilkan data dasar. Di-override di MobilBensin untuk menambah baris mesin dan BBM, dan di MobilListrik untuk menambah baris kapasitas baterai dan jangkauan.
+## Penerapan Interface
+ 
+Interface `ITerhitung` mendefinisikan kontrak perhitungan harga yang harus dipenuhi oleh semua kendaraan di sistem dealer. Ini logis karena sistem kasir atau sistem harga dealer membutuhkan jaminan bahwa semua objek kendaraan pasti bisa menghitung diskon dan harga akhirnya.
  
 ```java
-public void tampilInfo() { ... }
- 
-@Override
-public void tampilInfo() {
-    super.tampilInfo();
-    System.out.println("  Mesin     : " + this.kapasitasMesin + " cc");
-    System.out.println("  BBM       : " + this.jenisBahanBakar);
-}
- 
-@Override
-public void tampilInfo() {
-    super.tampilInfo();
-    System.out.println("  Baterai   : " + this.kapasitasBaterai + " kWh");
-    System.out.println("  Jangkauan : " + this.jangkauanKm + " km");
+public interface ITerhitung {
+    double hitungDiskon(double persentase);
+    double hitungHargaAkhir(double persentaseDiskon);
 }
 ```
  
----
- 
-### Method Overloading
- 
-Overloading adalah ketika satu class memiliki beberapa method dengan nama yang sama tetapi parameter yang berbeda.
- 
-#### 1. hitungDiskon() di class Mobil (3 versi)
- 
-Logis karena dealer bisa memberikan diskon dalam berbagai cara: diskon standar tanpa argumen, diskon dengan persentase tertentu, atau diskon dengan persentase sekaligus alasan yang tercatat.
+`Mobil` mengimplementasikan interface ini dan menyediakan implementasinya:
  
 ```java
-public double hitungDiskon() {
-    return this.harga * 0.05;
-}
- 
+@Override
 public double hitungDiskon(double persentase) {
     return this.harga * (persentase / 100);
 }
  
-public double hitungDiskon(double persentase, String alasan) {
-    double diskon = this.harga * (persentase / 100);
-    System.out.println("  Alasan diskon : " + alasan);
-    return diskon;
+@Override
+public double hitungHargaAkhir(double persentaseDiskon) {
+    double diskon = hitungDiskon(persentaseDiskon);
+    double pajak  = hitungPajak();
+    return this.harga - diskon + pajak;
 }
 ```
  
-#### 2. cariMobil() di class DealerManager (3 versi)
- 
-Logis karena pencarian mobil di dealer bisa dilakukan dengan berbagai kriteria: berdasarkan ID, berdasarkan kata kunci nama atau tipe, atau berdasarkan rentang tahun produksi.
- 
-```java
-public Mobil cariMobil(String id) { ... }
- 
-public ArrayList<Mobil> cariMobil(String kata, boolean cariByNama) { ... }
- 
-public ArrayList<Mobil> cariMobil(int tahunDari, int tahunSampai) { ... }
-```
+Karena `Mobil` adalah abstract class yang sudah mengimplementasikan interface, subclass `MobilBensin` dan `MobilListrik` mewarisi implementasi tersebut secara otomatis tanpa perlu menulisnya ulang.
  
 ---
  
-## Ringkasan Polymorphism
+## Ringkasan Konsep yang Diterapkan
  
-| Jenis       | Method            | Lokasi            | Keterangan                                      |
-|-------------|-------------------|-------------------|-------------------------------------------------|
-| Overriding  | getKategori()     | MobilBensin, MobilListrik | Mengembalikan label kategori yang sesuai  |
-| Overriding  | hitungPajak()     | MobilBensin, MobilListrik | Tarif pajak berbeda per jenis kendaraan   |
-| Overriding  | tampilInfo()      | MobilBensin, MobilListrik | Menambah baris info khusus per subclass   |
-| Overloading | hitungDiskon()    | Mobil             | 3 versi: tanpa param, dengan persen, dengan alasan |
-| Overloading | cariMobil()       | DealerManager     | 3 versi: by ID, by nama/tipe, by rentang tahun |
+| Konsep | Lokasi | Keterangan |
+|---|---|---|
+| Abstract Class | `Mobil` | Tidak bisa diinstansiasi langsung |
+| Abstract Method | `getKategori()`, `hitungPajak()` di `Mobil` | Wajib diimplementasi oleh subclass |
+| Interface | `ITerhitung` | Kontrak 2 method perhitungan harga |
+| implements | `Mobil implements ITerhitung` | Mobil memenuhi kontrak ITerhitung |
+| Overriding abstract | `MobilBensin`, `MobilListrik` | Implementasi getKategori dan hitungPajak |
+| Overloading | `hitungDiskon()` di `Mobil` | 3 versi dengan parameter berbeda |
+| Overloading | `cariMobil()` di `DealerManager` | 3 versi pencarian |
  
 ---
  
